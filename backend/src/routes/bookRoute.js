@@ -1,63 +1,64 @@
+// bookRoute.js
 import { Router } from "express";
-import { authmiddleware, rolemiddleware } from "../middleware/authmiddleware.js";
+import { authmiddleware } from "../middleware/authmiddleware.js"; // Correctly import authmiddleware
 import BookModel from "../model/bookModel.js";
 
-const bookRoute= Router();
+const bookRoute = Router();
 
-bookRoute.post("/create",authmiddleware, async(req, res)=>{
-    const {title,author,frontCoverImage,backCoverImage, pages}= req.body;
+bookRoute.post("/create", authmiddleware, async (req, res) => {
+    const { title, author, frontCoverImage, backCoverImage, pages } = req.body;
     try {
-        const newbook = new BookModel({title,author,frontCoverImage,backCoverImage, pages})
+        const newbook = new BookModel({ title, author, frontCoverImage, backCoverImage, pages });
         await newbook.save();
-        res.status(201).json({book:newbook})
+        res.status(201).json({ book: newbook });
     } catch (error) {
-        console.log(error);
+        console.error("Error creating book", error);
+        res.status(500).json({ message: "Error creating book" });
     }
-})
+});
 
-// get all the book 
-bookRoute.get("/", authmiddleware, async(req, res)=>{
-    const page = parseInt(req.query.page) ||1;
-    const limit= parseInt(req.query.page) || 10;
+// Get all the books
+bookRoute.get("/", async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     try {
-        const books=await BookModel.find()
-        .skip((page-1)*limit)
-        .limit(limit);
-        res.status(200),json({books:books})
+        const books = await BookModel.find()
+            .skip((page - 1) * limit)
+            .limit(limit);
+        res.status(200).json({ books: books });
     } catch (error) {
-        console.error("error while fetching the books",error);
-        res.status(500).json({message:"erroe in fetcing the books "})
+        console.error("Error fetching books", error);
+        res.status(500).json({ message: "Error fetching books" });
     }
-})
+});
 
-
-bookRoute.get("/:id",authmiddleware, async(req, res)=>{
-   const bookId= req.params.id;
-   try {
-     const book= await BookModel.findById(bookId);
-     if(!book){
-        return res.status(404).json({message:"book not found"})
-     }
-     res.status(200).json({message:"deleted sucessfully"})
-   } catch (error) {
-    console.error("error while fetching the book by Id",error);
-    res.status(500).json({message:"error in fetcing the book by Id "})
-   }
-})
-
-// delete by id
-bookRoute.delete("/:id",authmiddleware, rolemiddleware ,async(req, res)=>{
-    const bookId= req.params.id;
+bookRoute.get("/:id", async (req, res) => {
+    const bookId = req.params.id;
     try {
-        const deleteBook= await BookModel.findByIdAndDelete(bookId)
-        if(!deleteBook){
-            return res.status(404).json({message:"book not found"})
+        const book = await BookModel.findById(bookId);
+        if (!book) {
+            return res.status(404).json({ message: "Book not found" });
         }
-        res.status(200).json({message:"deleted sucessfully"})
+        res.status(200).json({ book: book });
     } catch (error) {
-        console.error("error while fetching the book by Id",error);
-    res.status(500).json({message:"error in fetcing the book by Id "})
+        console.error("Error fetching the book by ID", error);
+        res.status(500).json({ message: "Error fetching the book by ID" });
     }
-})
+});
 
-export default bookRoute
+// Delete by ID
+bookRoute.delete("/:id", authmiddleware, async (req, res) => {
+    const bookId = req.params.id;
+    try {
+        const deleteBook = await BookModel.findByIdAndDelete(bookId);
+        if (!deleteBook) {
+            return res.status(404).json({ message: "Book not found" });
+        }
+        res.status(200).json({ message: "Book deleted successfully" });
+    } catch (error) {
+        console.error("Error deleting the book by ID", error);
+        res.status(500).json({ message: "Error deleting the book by ID" });
+    }
+});
+
+export default bookRoute;

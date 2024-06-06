@@ -8,12 +8,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('/books');
+        const response = await axios.get('http://localhost:3001/books');
         setBooks(response.data.books);
       } catch (error) {
         console.error('Error fetching books:', error);
       }
     };
+    
 
     fetchBooks();
   }, []);
